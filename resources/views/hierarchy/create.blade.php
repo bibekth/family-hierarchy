@@ -37,7 +37,7 @@
                                 <label for="sex">Gender</label>
                                 <select name="sex" id="sex"
                                     class="form-control @error('sex') is-invalid @enderror">
-                                    <option value="">Select gender</option>
+                                    <option value="" disabled selected>Select gender</option>
                                     <option value="M">Male</option>
                                     <option value="F">Female</option>
                                 </select>
