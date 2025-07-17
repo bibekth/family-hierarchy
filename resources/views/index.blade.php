@@ -4,11 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Family Hierarchy Tree</title>
+    <title>Family Hierarchy Tree of {{ $user->name }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
-        /* Dark mode styles */
         body {
             font-family: 'Inter', sans-serif;
             margin: 0;
@@ -56,7 +55,7 @@
             stroke-dasharray: 5 5;
         }
 
-        .link.parent-child-link {
+        .link.parent_child-link {
             stroke: #4ade80;
         }
 
@@ -94,6 +93,19 @@
         const g = svg.append("g");
         const tooltip = d3.select("#tooltip");
 
+        const verticalGap = 120;
+
+        data.nodes.forEach(node => {
+            node.fixedY = height / 2 + (node.depth * verticalGap);
+        });
+
+        const simulation = d3.forceSimulation(data.nodes)
+            .force("link", d3.forceLink(data.links).id(d => d.id).distance(120).strength(0.7))
+            .force("charge", d3.forceManyBody().strength(-300))
+            .force("center", d3.forceCenter(width / 2, height / 2))
+            .force("collision", d3.forceCollide().radius(30))
+            .force("x", d3.forceX().strength(0.1).x(width / 2));
+
         g.append("defs").selectAll("clipPath")
             .data(data.nodes)
             .enter().append("clipPath")
@@ -101,97 +113,12 @@
             .append("circle")
             .attr("r", 25);
 
-        const nodeDepths = new Map();
-        const queue = [];
-        const processedForDepth = new Set();
-
-        data.nodes.forEach(node => {
-            const isChildOfAny = data.links.some(link => link.target.id === node.id && link.type ===
-                'parent_child');
-            if (!isChildOfAny) {
-                nodeDepths.set(node.id, 0);
-                queue.push(node.id);
-                processedForDepth.add(node.id);
-            }
-        });
-
-        let head = 0;
-        while (head < queue.length) {
-            const currentId = queue[head++];
-            const currentDepth = nodeDepths.get(currentId);
-
-            data.links.forEach(link => {
-                const sourceId = typeof link.source === 'object' ? link.source.id : link.source;
-                const targetId = typeof link.target === 'object' ? link.target.id : link.target;
-
-                if (sourceId === currentId && link.type === 'parent_child') {
-                    const newDepth = currentDepth + 1;
-                    if (!processedForDepth.has(targetId) || newDepth > nodeDepths.get(targetId)) {
-                        nodeDepths.set(targetId, newDepth);
-                        if (!processedForDepth.has(targetId)) {
-                            queue.push(targetId);
-                            processedForDepth.add(targetId);
-                        }
-                    }
-                }
-            });
-        }
-
-        // Step 2: Normalize spouse depths AFTER BFS
-        data.links.forEach(link => {
-            if (link.type === 'spouse') {
-                const sourceId = typeof link.source === 'object' ? link.source.id : link.source;
-                const targetId = typeof link.target === 'object' ? link.target.id : link.target;
-
-                const sourceDepth = nodeDepths.get(sourceId);
-                const targetDepth = nodeDepths.get(targetId);
-
-                if (sourceDepth !== undefined && targetDepth === undefined) {
-                    nodeDepths.set(targetId, sourceDepth);
-                } else if (targetDepth !== undefined && sourceDepth === undefined) {
-                    nodeDepths.set(sourceId, targetDepth);
-                } else if (sourceDepth !== undefined && targetDepth !== undefined && sourceDepth !== targetDepth) {
-                    const avgDepth = Math.round((sourceDepth + targetDepth) / 2);
-                    nodeDepths.set(sourceId, avgDepth);
-                    nodeDepths.set(targetId, avgDepth);
-                }
-            }
-        });
-
-        data.nodes.forEach(node => {
-            node.depth = nodeDepths.get(node.id) || 0;
-            node.fy = node.depth * 150 + 50;
-        });
-
-        console.table(data.nodes.map(n => ({
-            id: n.id,
-            name: n.name,
-            sex: n.sex,
-            depth: n.depth
-        })));
-
-        const simulation = d3.forceSimulation(data.nodes)
-            .force("link", d3.forceLink(data.links).id(d => d.id).distance(120).strength(0.7))
-            .force("charge", d3.forceManyBody().strength(-300))
-            .force("center", d3.forceCenter(width / 2, height / 2))
-            .force("collision", d3.forceCollide().radius(30))
-            .force("x", d3.forceX().strength(0.02).x(d => {
-                const parentLinks = data.links.filter(link => link.target.id === d.id && link.type ===
-                    'parent_child');
-                if (parentLinks.length > 0) {
-                    const parentX = d3.mean(parentLinks, link => link.source.x);
-                    return parentX || width / 2;
-                }
-                return width / 2;
-            }))
-            .force("y", d3.forceY().strength(1).y(d => d.depth * 150 + 50));
-
         const link = g.append("g")
             .attr("class", "links")
             .selectAll("line")
             .data(data.links)
             .enter().append("line")
-            .attr("class", d => `link ${d.type}-link`);
+            .attr("class", d => `link ${d.type.replace('_', '-')}-link`);
 
         const node = g.append("g")
             .attr("class", "nodes")
@@ -251,6 +178,10 @@
             .attr("style", "font-size: 6px");
 
         simulation.on("tick", () => {
+            node.each(d => {
+                d.y = d.fixedY; // Lock y to depth line
+            });
+
             link
                 .attr("x1", d => d.source.x)
                 .attr("y1", d => d.source.y)
@@ -261,6 +192,7 @@
                 .attr("transform", d => `translate(${d.x},${d.y})`);
         });
 
+
         function dragstarted(event, d) {
             if (!event.active) simulation.alphaTarget(0.3).restart();
             d.fx = d.x;
@@ -268,6 +200,7 @@
 
         function dragged(event, d) {
             d.fx = event.x;
+            d.fy = event.y;
         }
 
         function dragended(event, d) {
