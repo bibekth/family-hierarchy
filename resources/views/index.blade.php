@@ -163,6 +163,13 @@
             node.fy = node.depth * 150 + 50;
         });
 
+        console.table(data.nodes.map(n => ({
+            id: n.id,
+            name: n.name,
+            sex: n.sex,
+            depth: n.depth
+        })));
+
         const simulation = d3.forceSimulation(data.nodes)
             .force("link", d3.forceLink(data.links).id(d => d.id).distance(120).strength(0.7))
             .force("charge", d3.forceManyBody().strength(-300))
