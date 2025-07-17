@@ -150,15 +150,11 @@ class HierarchyController extends Controller
         // Initialize arrays to hold graph nodes and links
         $nodes = [];
         $links = [];
-        $addedNodes = []; // Keep track of nodes already added to prevent duplicates
-
-        // Define a maximum depth for fetching relatives to avoid overly large graphs
-        // Adjust these values as needed for your desired graph size.
-        $maxGenerationsUp = 3;   // How many generations up from the central person
-        $maxGenerationsDown = 2; // How many generations down from the central person (including self as depth 0)
+        $depthMap = [];
+        $addedNodes = [];
 
         // Helper function to add a person to the nodes array if not already present
-        $addPersonToGraph = function ($person) use (&$nodes, &$addedNodes) {
+        $addPersonToGraph = function ($person, $depth) use (&$nodes, &$addedNodes, &$depthMap) {
             if ($person && !isset($addedNodes[$person->id])) {
                 $nodes[] = [
                     'id' => $person->id,
@@ -168,93 +164,86 @@ class HierarchyController extends Controller
                     'dod' => $person->dod ? $person->dod->toDateString() : null,
                     'avatar' => $person->avatar,
                     'slug' => $person->slug,
+                    'depth' => $depth,
                 ];
                 $addedNodes[$person->id] = true;
+                $depthMap[$person->id] = $depth;
             }
         };
 
-        // --- Step 1: Add the central person ---
-        $addPersonToGraph($hierarchy);
+        // --- Step 1: Add the central person at depth 0 ---
+        $addPersonToGraph($hierarchy, 0);
 
         // --- Step 2: Traverse upwards (ancestors) ---
-        $currentPersonForUp = $hierarchy;
-        for ($i = 0; $i < $maxGenerationsUp; $i++) {
-            $hasNewParents = false;
+        $upQueue = new \SplQueue();
+        $upQueue->enqueue(['person' => $hierarchy, 'depth' => 0]);
 
-            // Add father and link
-            if ($currentPersonForUp->father) {
-                $addPersonToGraph($currentPersonForUp->father);
-                $links[] = ['source' => $currentPersonForUp->father->id, 'target' => $currentPersonForUp->id, 'type' => 'parent_child'];
-                // Add father's spouse (mother of current person) and link
-                if ($currentPersonForUp->father->spouse) {
-                    $addPersonToGraph($currentPersonForUp->father->spouse);
-                    $links[] = ['source' => $currentPersonForUp->father->id, 'target' => $currentPersonForUp->father->spouse->id, 'type' => 'spouse'];
+        $visitedUp = [];
+
+        while (!$upQueue->isEmpty()) {
+            $item = $upQueue->dequeue();
+            $person = $item['person'];
+            $depth = $item['depth'];
+
+            if (isset($visitedUp[$person->id])) continue;
+            $visitedUp[$person->id] = true;
+
+            // Process father
+            if ($person->father) {
+                $addPersonToGraph($person->father, $depth - 1);
+                $links[] = ['source' => $person->father->id, 'target' => $person->id, 'type' => 'parent_child'];
+                $upQueue->enqueue(['person' => $person->father, 'depth' => $depth - 1]);
+
+                if ($person->father->spouse) {
+                    $addPersonToGraph($person->father->spouse, $depth - 1);
+                    $links[] = ['source' => $person->father->id, 'target' => $person->father->spouse->id, 'type' => 'spouse'];
                 }
-                $hasNewParents = true;
             }
 
-            // Add mother and link
-            if ($currentPersonForUp->mother) {
-                $addPersonToGraph($currentPersonForUp->mother);
-                $links[] = ['source' => $currentPersonForUp->mother->id, 'target' => $currentPersonForUp->id, 'type' => 'parent_child'];
-                // Add mother's spouse (father of current person) and link
-                if ($currentPersonForUp->mother->spouse && !isset($addedNodes[$currentPersonForUp->mother->spouse->id])) {
-                    $addPersonToGraph($currentPersonForUp->mother->spouse);
-                    $links[] = ['source' => $currentPersonForUp->mother->id, 'target' => $currentPersonForUp->mother->spouse->id, 'type' => 'spouse'];
+            // Process mother
+            if ($person->mother) {
+                $addPersonToGraph($person->mother, $depth - 1);
+                $links[] = ['source' => $person->mother->id, 'target' => $person->id, 'type' => 'parent_child'];
+                $upQueue->enqueue(['person' => $person->mother, 'depth' => $depth - 1]);
+
+                if ($person->mother->spouse) {
+                    $addPersonToGraph($person->mother->spouse, $depth - 1);
+                    $links[] = ['source' => $person->mother->id, 'target' => $person->mother->spouse->id, 'type' => 'spouse'];
                 }
-                $hasNewParents = true;
-            }
-
-            // Move up to the next generation of parents (if any of the current parents exist)
-            if ($currentPersonForUp->father) {
-                $currentPersonForUp = $currentPersonForUp->father; // Arbitrarily pick father to continue ascent
-            } elseif ($currentPersonForUp->mother) {
-                $currentPersonForUp = $currentPersonForUp->mother; // If no father, try mother
-            } else {
-                break; // No more parents to trace
-            }
-
-            if (!$hasNewParents) {
-                break; // Stop if no new parents were found in this generation
             }
         }
 
         // --- Step 3: Add spouse of the central person ---
         if ($hierarchy->spouse) {
-            $addPersonToGraph($hierarchy->spouse);
+            $addPersonToGraph($hierarchy->spouse, 0);
             $links[] = ['source' => $hierarchy->id, 'target' => $hierarchy->spouse->id, 'type' => 'spouse'];
         }
 
         // --- Step 4: Traverse downwards (descendants) using a queue for breadth-first traversal ---
-        $queue = new \SplQueue();
-        $queue->enqueue(['person' => $hierarchy, 'depth' => 0]); // Start with the central person at depth 0
+        $downQueue = new \SplQueue();
+        $downQueue->enqueue(['person' => $hierarchy, 'depth' => 0]);
 
-        $processedForChildren = []; // To avoid processing the same person's children multiple times
+        $visitedDown = [];
 
-        while (!$queue->isEmpty()) {
-            $item = $queue->dequeue();
-            $currentPerson = $item['person'];
-            $currentDepth = $item['depth'];
+        while (!$downQueue->isEmpty()) {
+            $item = $downQueue->dequeue();
+            $person = $item['person'];
+            $depth = $item['depth'];
 
-            // Skip if already processed for children or if max depth reached
-            if (isset($processedForChildren[$currentPerson->id]) || $currentDepth > $maxGenerationsDown) {
-                continue;
-            }
-            $processedForChildren[$currentPerson->id] = true;
+            if (isset($visitedDown[$person->id])) continue;
+            $visitedDown[$person->id] = true;
 
-            // Fetch children of the current person
-            $children = Hierarchy::where('father_id', $currentPerson->id)
-                ->orWhere('mother_id', $currentPerson->id)
+            $children = Hierarchy::where('father_id', $person->id)
+                ->orWhere('mother_id', $person->id)
                 ->get();
 
             foreach ($children as $child) {
-                $addPersonToGraph($child);
-                $links[] = ['source' => $currentPerson->id, 'target' => $child->id, 'type' => 'parent_child'];
-                $queue->enqueue(['person' => $child, 'depth' => $currentDepth + 1]);
+                $addPersonToGraph($child, $depth + 1);
+                $links[] = ['source' => $person->id, 'target' => $child->id, 'type' => 'parent_child'];
+                $downQueue->enqueue(['person' => $child, 'depth' => $depth + 1]);
 
-                // Also add the child's spouse if they have one and it's within depth
-                if ($child->spouse && $currentDepth + 1 <= $maxGenerationsDown) {
-                    $addPersonToGraph($child->spouse);
+                if ($child->spouse) {
+                    $addPersonToGraph($child->spouse, $depth + 1);
                     $links[] = ['source' => $child->id, 'target' => $child->spouse->id, 'type' => 'spouse'];
                 }
             }
@@ -277,7 +266,7 @@ class HierarchyController extends Controller
         $links = array_values($uniqueLinks);
 
         // Pass the structured graph data (nodes and links) to the view
-        return view('index', ['graphData' => json_encode(['nodes' => array_values($nodes), 'links' => $links])]);
+        return view('index', ['graphData' => json_encode(['nodes' => array_values($nodes), 'links' => $links]), 'user' => $hierarchy]);
     }
 
     public function main(Request $request)
