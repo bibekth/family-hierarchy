@@ -289,7 +289,8 @@
             .text(d => d.name)
             .attr("fill", "#000") // Text color set to black for better contrast on colored circles
             .attr("y", 38)
-            .attr("x", -60); // Position name text below the circle
+            .attr("x", -60)
+            .attr("font-size", "12px"); // Position name text below the circle
 
         // Update positions of nodes and links on each simulation tick
         simulation.on("tick", () => {
