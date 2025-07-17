@@ -176,7 +176,8 @@
                     return parentX || width / 2;
                 }
                 return width / 2;
-            }));
+            }))
+            .force("y", d3.forceY().strength(1).y(d => d.depth * 150 + 50));
 
         const link = g.append("g")
             .attr("class", "links")
