@@ -94,73 +94,93 @@
         const g = svg.append("g");
         const tooltip = d3.select("#tooltip");
 
-        g.append("defs").selectAll("clipPath")
-            .data(data.nodes)
-            .enter().append("clipPath")
-            .attr("id", d => `clip-${d.id}`)
-            .append("circle")
-            .attr("r", 25);
+        // Function to calculate depths starting from a specific node
+        function calculateDepths(startNodeId) {
+            const depths = new Map();
+            const visited = new Set();
+            const queue = [];
 
-        const nodeDepths = new Map();
-        const queue = [];
-        const processedForDepth = new Set();
+            // Initialize with the starting node
+            depths.set(startNodeId, 0);
+            queue.push(startNodeId);
+            visited.add(startNodeId);
 
-        data.nodes.forEach(node => {
-            const isChildOfAny = data.links.some(link => link.target.id === node.id && link.type ===
-                'parent_child');
-            if (!isChildOfAny) {
-                nodeDepths.set(node.id, 0);
-                queue.push(node.id);
-                processedForDepth.add(node.id);
+            // Process ancestors (parents, grandparents)
+            let currentId = startNodeId;
+            while (true) {
+                const parentLinks = data.links.filter(link =>
+                    link.target.id === currentId && link.type === 'parent_child');
+
+                if (parentLinks.length === 0) break;
+
+                parentLinks.forEach(link => {
+                    const parentId = typeof link.source === 'object' ? link.source.id : link.source;
+                    if (!visited.has(parentId)) {
+                        depths.set(parentId, depths.get(currentId) - 1);
+                        queue.push(parentId);
+                        visited.add(parentId);
+                    }
+                });
+
+                // Move to next parent (assuming one parent for simplicity)
+                currentId = parentLinks[0].source.id;
             }
-        });
 
-        let head = 0;
-        while (head < queue.length) {
-            const currentId = queue[head++];
-            const currentDepth = nodeDepths.get(currentId);
+            // Process descendants (children, grandchildren)
+            let head = 0;
+            while (head < queue.length) {
+                const currentId = queue[head++];
+                const currentDepth = depths.get(currentId);
 
-            data.links.forEach(link => {
-                const sourceId = typeof link.source === 'object' ? link.source.id : link.source;
-                const targetId = typeof link.target === 'object' ? link.target.id : link.target;
+                // Process children
+                data.links.forEach(link => {
+                    if (link.type === 'parent_child') {
+                        const sourceId = typeof link.source === 'object' ? link.source.id : link.source;
+                        const targetId = typeof link.source === 'object' ? link.target.id : link.target;
 
-                if (sourceId === currentId && link.type === 'parent_child') {
-                    const newDepth = currentDepth + 1;
-                    if (!processedForDepth.has(targetId) || newDepth > nodeDepths.get(targetId)) {
-                        nodeDepths.set(targetId, newDepth);
-                        if (!processedForDepth.has(targetId)) {
-                            queue.push(targetId);
-                            processedForDepth.add(targetId);
+                        if (sourceId === currentId) {
+                            if (!visited.has(targetId)) {
+                                depths.set(targetId, currentDepth + 1);
+                                queue.push(targetId);
+                                visited.add(targetId);
+                            }
                         }
                     }
-                }
-            });
+                });
+
+                // Process spouses (should be at same depth)
+                data.links.forEach(link => {
+                    if (link.type === 'spouse') {
+                        const sourceId = typeof link.source === 'object' ? link.source.id : link.source;
+                        const targetId = typeof link.target === 'object' ? link.target.id : link.target;
+
+                        if (sourceId === currentId && !visited.has(targetId)) {
+                            depths.set(targetId, currentDepth);
+                            queue.push(targetId);
+                            visited.add(targetId);
+                        } else if (targetId === currentId && !visited.has(sourceId)) {
+                            depths.set(sourceId, currentDepth);
+                            queue.push(sourceId);
+                            visited.add(sourceId);
+                        }
+                    }
+                });
+            }
+
+            return depths;
         }
 
-        // Step 2: Normalize spouse depths AFTER BFS
-        data.links.forEach(link => {
-            if (link.type === 'spouse') {
-                const sourceId = typeof link.source === 'object' ? link.source.id : link.source;
-                const targetId = typeof link.target === 'object' ? link.target.id : link.target;
+        // Get the ID of the person you're viewing (you'll need to set this)
+        // For example, if viewing your dad, set this to your dad's ID
+        const viewedPersonId = "some-id"; // Replace with actual ID
 
-                const sourceDepth = nodeDepths.get(sourceId);
-                const targetDepth = nodeDepths.get(targetId);
+        // Calculate depths relative to the viewed person
+        const nodeDepths = calculateDepths(viewedPersonId);
 
-                if (sourceDepth !== undefined && targetDepth === undefined) {
-                    nodeDepths.set(targetId, sourceDepth);
-                } else if (targetDepth !== undefined && sourceDepth === undefined) {
-                    nodeDepths.set(sourceId, targetDepth);
-                } else if (sourceDepth !== undefined && targetDepth !== undefined && sourceDepth !== targetDepth) {
-                    const avgDepth = Math.round((sourceDepth + targetDepth) / 2);
-                    nodeDepths.set(sourceId, avgDepth);
-                    nodeDepths.set(targetId, avgDepth);
-                }
-            }
-        });
-
+        // Assign depths to nodes
         data.nodes.forEach(node => {
             node.depth = nodeDepths.get(node.id) || 0;
-            node.fy = node.depth * 150 + 50;
+            node.fy = node.depth * 150 + height / 2; // Center vertically
         });
 
         console.table(data.nodes.map(n => ({
