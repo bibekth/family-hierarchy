@@ -134,29 +134,29 @@
                         }
                     }
                 }
-
-                data.links.forEach(link => {
-                    if (link.type === 'spouse') {
-                        const sourceId = typeof link.source === 'object' ? link.source.id : link.source;
-                        const targetId = typeof link.target === 'object' ? link.target.id : link.target;
-
-                        const sourceDepth = nodeDepths.get(sourceId);
-                        const targetDepth = nodeDepths.get(targetId);
-
-                        if (sourceDepth !== undefined && targetDepth === undefined) {
-                            nodeDepths.set(targetId, sourceDepth);
-                        } else if (targetDepth !== undefined && sourceDepth === undefined) {
-                            nodeDepths.set(sourceId, targetDepth);
-                        } else if (sourceDepth !== undefined && targetDepth !== undefined && sourceDepth !==
-                            targetDepth) {
-                            const avgDepth = Math.round((sourceDepth + targetDepth) / 2);
-                            nodeDepths.set(sourceId, avgDepth);
-                            nodeDepths.set(targetId, avgDepth);
-                        }
-                    }
-                });
             });
         }
+
+        // Step 2: Normalize spouse depths AFTER BFS
+        data.links.forEach(link => {
+            if (link.type === 'spouse') {
+                const sourceId = typeof link.source === 'object' ? link.source.id : link.source;
+                const targetId = typeof link.target === 'object' ? link.target.id : link.target;
+
+                const sourceDepth = nodeDepths.get(sourceId);
+                const targetDepth = nodeDepths.get(targetId);
+
+                if (sourceDepth !== undefined && targetDepth === undefined) {
+                    nodeDepths.set(targetId, sourceDepth);
+                } else if (targetDepth !== undefined && sourceDepth === undefined) {
+                    nodeDepths.set(sourceId, targetDepth);
+                } else if (sourceDepth !== undefined && targetDepth !== undefined && sourceDepth !== targetDepth) {
+                    const avgDepth = Math.round((sourceDepth + targetDepth) / 2);
+                    nodeDepths.set(sourceId, avgDepth);
+                    nodeDepths.set(targetId, avgDepth);
+                }
+            }
+        });
 
         data.nodes.forEach(node => {
             node.depth = nodeDepths.get(node.id) || 0;
