@@ -9,7 +9,7 @@
         <div class="row justify-content-center">
             <div class="">
                 <div class="card">
-                     <div class="card-header d-flex justify-content-between">
+                    <div class="card-header d-flex justify-content-between">
                         <span>{{ __('People you have added.') }}</span><span><a href="{{ route('hierarchy.index') }}"><button
                                     class="btn btn-sm btn-primary">View Table</button></a></span>
                     </div>
@@ -77,10 +77,11 @@
 
                             {{-- Profile Image --}}
                             <div class="mb-1">
-                                <label><input type="checkbox" id="toggle-image" {{ ($data->avatar !== null) ? 'checked' : '' }}> Do
+                                <label><input type="checkbox" id="toggle-image"
+                                        {{ $data->avatar !== null ? 'checked' : '' }}> Do
                                     you know have their image?</label><br>
                             </div>
-                            <div class="mb-3 {{ ($data->avatar !== null) ? '' : 'hidden-field' }}" id="image-field">
+                            <div class="mb-3 {{ $data->avatar !== null ? '' : 'hidden-field' }}" id="image-field">
                                 <label for="avatar">Profile Image</label>
                                 <input type="file" name="avatar" id="avatar"
                                     class="form-control @error('avatar') is-invalid @enderror">
@@ -210,6 +211,18 @@
 
             .select2-container--default .select2-selection--single .select2-selection__rendered {
                 color: white;
+            }
+
+            .select2-results__option {
+                background-color: #212529;
+            }
+
+            .select2-container--default .select2-search--dropdown .select2-search__field {
+                border: 1px solid #67727e;
+            }
+
+            .select2-search--dropdown {
+                background-color: #212529;
             }
         </style>
     </div>

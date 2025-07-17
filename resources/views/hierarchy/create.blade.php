@@ -205,6 +205,18 @@
             .select2-container--default .select2-selection--single .select2-selection__rendered {
                 color: white;
             }
+
+            .select2-results__option {
+                background-color: #212529;
+            }
+
+            .select2-container--default .select2-search--dropdown .select2-search__field {
+                border: 1px solid #67727e;
+            }
+
+            .select2-search--dropdown {
+                background-color: #212529;
+            }
         </style>
     </div>
 @endsection
