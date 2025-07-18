@@ -1523,36 +1523,53 @@
     class="bg-[#FDFDFC] dark:bg-[#0a0a0a] text-[#1b1b18] flex p-6 lg:p-8 items-center lg:justify-center min-h-screen flex-col">
     <header class="w-full lg:max-w-4xl max-w-[335px] text-sm mb-6 not-has-[nav]:hidden">
         @if (Route::has('login'))
-            <nav class="flex items-center justify-end gap-4">
-                @auth
-                    <a href="{{ url('/dashboard') }}"
-                        class="inline-block px-5 py-1.5 dark:text-[#EDEDEC] border-[#19140035] hover:border-[#1915014a] border text-[#1b1b18] dark:border-[#3E3E3A] dark:hover:border-[#62605b] rounded-sm text-sm leading-normal">
-                        Dashboard
-                    </a>
-                @else
-                    <a href="{{ route('login') }}"
+            <nav class="flex items-center justify-between gap-4">
+                <div class="">
+                    <a href="{{ route('main') }}"
                         class="inline-block px-5 py-1.5 dark:text-[#EDEDEC] text-[#1b1b18] border border-transparent hover:border-[#19140035] dark:hover:border-[#3E3E3A] rounded-sm text-sm leading-normal">
-                        Log in
+                        {{ config('app.name') }}
                     </a>
-
-                    @if (Route::has('register'))
-                        <a href="{{ route('register') }}"
+                </div>
+                @auth
+                    <div class="">
+                        <a href="{{ url('/dashboard') }}"
                             class="inline-block px-5 py-1.5 dark:text-[#EDEDEC] border-[#19140035] hover:border-[#1915014a] border text-[#1b1b18] dark:border-[#3E3E3A] dark:hover:border-[#62605b] rounded-sm text-sm leading-normal">
-                            Register
+                            Dashboard
                         </a>
-                    @endif
+                    </div>
+                @else
+                    <div class="gap-2">
+                        <a href="{{ route('login') }}"
+                            class="inline-block px-5 py-1.5 dark:text-[#EDEDEC] text-[#1b1b18] border border-transparent hover:border-[#19140035] dark:hover:border-[#3E3E3A] rounded-sm text-sm leading-normal">
+                            Log in
+                        </a>
+
+                        @if (Route::has('register'))
+                            <a href="{{ route('register') }}"
+                                class="inline-block px-5 py-1.5 dark:text-[#EDEDEC] border-[#19140035] hover:border-[#1915014a] border text-[#1b1b18] dark:border-[#3E3E3A] dark:hover:border-[#62605b] rounded-sm text-sm leading-normal">
+                                Register
+                            </a>
+                        @endif
+                    </div>
                 @endauth
             </nav>
         @endif
     </header>
 
     <div class="w-full transition-opacity opacity-100 duration-750 lg:grow">
-        <form id="filter-form"
-            class="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4 p-4 rounded">
+        <!-- Clear Button -->
+        <div class="md:col-span-4 flex justify-end">
+            <button type="button" onclick="const f = document.getElementById('filter-form'); f.reset(); f.submit();"
+                class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
+                Clear All
+            </button>
+        </div>
+        <form id="filter-form" class="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4 p-4 rounded">
             <input type="text" name="name" placeholder="Name" title="Name"
                 class="px-4 py-2 rounded border border-gray-300 dark:bg-gray-900 dark:text-white">
 
-            <select name="sex" class="px-4 py-2 rounded border border-gray-300 dark:bg-gray-900 dark:text-white" title="Gender">
+            <select name="sex" class="px-4 py-2 rounded border border-gray-300 dark:bg-gray-900 dark:text-white"
+                title="Gender">
                 <option value="">Gender</option>
                 <option value="M">Male</option>
                 <option value="F">Female</option>
@@ -1564,6 +1581,7 @@
             <input type="date" name="dod" placeholder="Date of Death" title="Date of Death"
                 class="px-4 py-2 rounded border border-gray-300 dark:bg-gray-900 dark:text-white">
         </form>
+
         <div id="grid"
             class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-6 p-6 text-white">
             @include('paginated_people', ['data' => $data])
@@ -1609,7 +1627,9 @@
 
         try {
             const response = await fetch(url, {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
             });
             const html = await response.text();
 
