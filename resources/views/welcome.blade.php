@@ -1589,11 +1589,11 @@
     @if (Route::has('login'))
         <div class="w-full h-10 flex justify-end md:justify-end justify-center px-4 py-2 fixed bg-[#FDFDFC] dark:bg-[#0a0a0a]" style="bottom: 0px;">
             <div class="flex flex-wrap gap-2 text-sm">
-                <a href="{{ route('privacy-policy') }}"
+                <a href="{{ route('privacy-policy') }}" target="__blank"
                     class="inline-block px-4 py-2 dark:text-[#EDEDEC] text-[#1b1b18] border border-transparent hover:border-[#19140035] dark:hover:border-[#3E3E3A] rounded-sm leading-normal whitespace-nowrap">
                     Privacy & Policy
                 </a>
-                <a href="{{ route('terms-and-conditions') }}"
+                <a href="{{ route('terms-and-conditions') }}" target="__blank"
                     class="inline-block px-4 py-2 dark:text-[#EDEDEC] text-[#1b1b18] border border-transparent hover:border-[#19140035] dark:hover:border-[#3E3E3A] rounded-sm leading-normal whitespace-nowrap">
                     Terms & Conditions
                 </a>
