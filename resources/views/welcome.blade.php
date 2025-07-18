@@ -1577,7 +1577,7 @@
         </form>
 
         <div id="grid"
-            class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-6 p-6 text-white">
+            class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-6 p-6 text-white mb-6">
             @include('paginated_people', ['data' => $data])
         </div>
         <div id="loader" class="text-center my-4 hidden">
@@ -1587,7 +1587,7 @@
 
 
     @if (Route::has('login'))
-        <div class="h-auto flex justify-end md:justify-end justify-center px-4 py-2 fixed bg-[#FDFDFC] dark:bg-[#0a0a0a]" style="bottom: 0px;">
+        <div class="w-full h-10 flex justify-end md:justify-end justify-center px-4 py-2 fixed bg-[#FDFDFC] dark:bg-[#0a0a0a]" style="bottom: 0px;">
             <div class="flex flex-wrap gap-2 text-sm">
                 <a href="{{ route('privacy-policy') }}"
                     class="inline-block px-4 py-2 dark:text-[#EDEDEC] text-[#1b1b18] border border-transparent hover:border-[#19140035] dark:hover:border-[#3E3E3A] rounded-sm leading-normal whitespace-nowrap">
