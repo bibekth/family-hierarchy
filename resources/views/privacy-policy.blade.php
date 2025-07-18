@@ -1,4 +1,12 @@
-<x-guest-layout>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>{{ config('app.name') }} - Privacy & Policy</title>
+</head>
+<body>
     <div class="container mx-auto p-6 bg-white shadow-md rounded-lg">
         <h1 class="text-3xl font-bold text-gray-800 mb-6">Privacy Policy</h1>
         <p class="text-sm text-gray-500 mb-4">Effective Date: 18 July, 2025</p>
@@ -40,4 +48,5 @@
         <h2 class="text-2xl font-semibold text-gray-700 mb-3">6. Cookies and Tracking</h2>
         <p class="mb-6 text-gray-700">We do not use cookies or tracking tools for marketing or behavioral analytics.</p>
     </div>
-</x-guest-layout>
+</body>
+</html>

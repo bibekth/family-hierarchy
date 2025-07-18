@@ -1,4 +1,12 @@
-<x-guest-layout>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>{{ config('app.name') }} - Terms & Conditions</title>
+</head>
+<body>
     <div class="container mx-auto p-6 bg-white shadow-md rounded-lg">
 
         <h1 class="text-3xl font-bold text-gray-800 mb-6">Terms & Conditions</h1>
@@ -43,4 +51,5 @@
         <p class="mb-6 text-gray-700">This app exists to help you preserve and visualize your family history — nothing
             more.</p>
     </div>
-</x-guest-layout>
+</body>
+</html>
