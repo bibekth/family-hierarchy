@@ -38,3 +38,11 @@ Route::group(['middleware' => ['auth','verified']], function(){
 
 Route::get('/', [HierarchyController::class, 'main'])->name('main');
 Route::get('/{id}', [HierarchyController::class, 'display'])->name('hierarchy.display');
+
+Route::get('privacy-policy', function(){
+    return view('privacy-policy');
+})->name('privacy-policy');
+
+Route::get('terms-and-conditions', function(){
+    return view('terms-condition');
+})->name('terms-and-conditions');

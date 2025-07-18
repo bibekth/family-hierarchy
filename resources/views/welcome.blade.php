@@ -1523,13 +1523,7 @@
     class="bg-[#FDFDFC] dark:bg-[#0a0a0a] text-[#1b1b18] flex p-6 lg:p-8 items-center lg:justify-center min-h-screen flex-col">
     <header class="w-full lg:max-w-4xl max-w-[335px] text-sm mb-6 not-has-[nav]:hidden">
         @if (Route::has('login'))
-            <nav class="flex items-center justify-between gap-4">
-                <div class="">
-                    <a href="{{ route('main') }}"
-                        class="inline-block px-5 py-1.5 dark:text-[#EDEDEC] text-[#1b1b18] border border-transparent hover:border-[#19140035] dark:hover:border-[#3E3E3A] rounded-sm text-sm leading-normal">
-                        {{ config('app.name') }}
-                    </a>
-                </div>
+            <nav class="flex items-center justify-end gap-4">
                 @auth
                     <div class="">
                         <a href="{{ url('/dashboard') }}"
@@ -1593,7 +1587,18 @@
 
 
     @if (Route::has('login'))
-        <div class="h-14.5 hidden lg:block"></div>
+        <div class="h-8 flex justify-end md:justify-end justify-center px-4 py-2">
+            <div class="flex flex-wrap gap-2 text-sm">
+                <a href="{{ route('privacy-policy') }}"
+                    class="inline-block px-4 py-2 dark:text-[#EDEDEC] text-[#1b1b18] border border-transparent hover:border-[#19140035] dark:hover:border-[#3E3E3A] rounded-sm leading-normal whitespace-nowrap">
+                    Privacy & Policy
+                </a>
+                <a href="{{ route('terms-and-conditions') }}"
+                    class="inline-block px-4 py-2 dark:text-[#EDEDEC] text-[#1b1b18] border border-transparent hover:border-[#19140035] dark:hover:border-[#3E3E3A] rounded-sm leading-normal whitespace-nowrap">
+                    Terms & Conditions
+                </a>
+            </div>
+        </div>
     @endif
 </body>
 
