@@ -44,5 +44,8 @@ Route::get('terms-and-conditions', function(){
     return view('terms-condition');
 })->name('terms-and-conditions');
 
-Route::get('/', [HierarchyController::class, 'main'])->name('main');
+Route::get('/main', [HierarchyController::class, 'main'])->name('main');
 Route::get('/{id}', [HierarchyController::class, 'display'])->name('hierarchy.display');
+Route::get('/', function() {
+    return view('home');
+});
