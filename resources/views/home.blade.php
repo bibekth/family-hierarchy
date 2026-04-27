@@ -53,7 +53,7 @@
         <div class="text-2xl font-bold text-gray-900">
             Family Hierarchy <span class="text-lg text-blue-600">🧬</span>
         </div>
-        <a href="{{ config('app.url') }}" class="px-6 py-3 bg-blue-600 text-white rounded-full font-medium shadow-lg hover:bg-blue-700 transition duration-300">
+        <a href="{{ config('app.url') . 'main' }}" class="px-6 py-3 bg-blue-600 text-white rounded-full font-medium shadow-lg hover:bg-blue-700 transition duration-300">
             Try it out
         </a>
     </header>
@@ -67,7 +67,7 @@
             <p class="text-xl md:text-2xl text-gray-500 max-w-2xl mx-auto mb-8">
                 Family Hierarchy is a digital family tree builder that helps you visualize your lineage and honor your past.
             </p>
-            <a href="{{ config('app.url') }}" class="inline-block px-8 py-4 text-lg font-bold text-white bg-blue-600 rounded-full shadow-xl hover:bg-blue-700 transition duration-300 transform hover:scale-105">
+            <a href="{{ config('app.url') . 'main' }}" class="inline-block px-8 py-4 text-lg font-bold text-white bg-blue-600 rounded-full shadow-xl hover:bg-blue-700 transition duration-300 transform hover:scale-105">
                 Launch the App
             </a>
             <p class="mt-4 text-sm text-gray-400">Completely free to use.</p>
@@ -171,7 +171,7 @@
             <p class="text-lg md:text-xl max-w-3xl mx-auto mb-8 opacity-90">
                 Start preserving your family’s legacy today. It’s a tool for honoring the past and helping others stay connected to where they come from.
             </p>
-            <a href="{{ config('app.url') }}" class="inline-block px-8 py-4 text-lg font-bold text-blue-600 bg-white rounded-full shadow-lg hover:bg-gray-100 transition duration-300 transform hover:scale-105">
+            <a href="{{ config('app.url') . 'main' }}" class="inline-block px-8 py-4 text-lg font-bold text-blue-600 bg-white rounded-full shadow-lg hover:bg-gray-100 transition duration-300 transform hover:scale-105">
                 Start Building Now
             </a>
         </div>
@@ -180,7 +180,7 @@
     <!-- Footer -->
     <footer class="bg-gray-900 text-gray-400 py-8">
         <div class="container mx-auto px-4 text-center">
-            <p class="text-sm">&copy; 2025 Family Hierarchy. All rights reserved.</p>
+            <p class="text-sm">&copy; {{ now()->format('Y') }} Family Hierarchy. All rights reserved.</p>
         </div>
     </footer>
 
